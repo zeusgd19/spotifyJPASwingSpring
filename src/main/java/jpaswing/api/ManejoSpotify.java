@@ -24,8 +24,8 @@ import java.util.Optional;
 @Component
 public class ManejoSpotify {
 
-    private final String clientId = "7c75275f8ee74625878eb0f9c6215dd7";
-    private final String clientSecret = "cceb83c5e99d4978ae9166108cc63b7a";
+    private final String clientId = "";
+    private final String clientSecret = "";
 
     private final CancionRepository cancionRepository;
     private final ArtistaRepository artistaRepository;
