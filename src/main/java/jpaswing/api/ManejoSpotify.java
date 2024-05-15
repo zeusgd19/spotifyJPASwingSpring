@@ -20,7 +20,6 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Optional;
 
 @Component
 public class ManejoSpotify {
@@ -69,6 +68,27 @@ public class ManejoSpotify {
         return "";
     }
 
+    public Track[] getTracks(Cancion cancion, Artista artista) throws IOException, ParseException {
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .build();
+
+        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
+                .build();
+
+        try {
+            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            // Set access token for further "spotifyApi" object usage
+            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
+            System.out.println(clientCredentials.getAccessToken());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     public Icon getImage(Cancion cancion) throws ParseException, SpotifyWebApiException {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
@@ -106,7 +126,7 @@ public class ManejoSpotify {
             BufferedImage image = ImageIO.read(new URL(imageUrl));
 
             // Escalar la imagen para que se ajuste al tamaño deseado
-            java.awt.Image scaledImage = image.getScaledInstance(100, 100, image.SCALE_SMOOTH);
+            java.awt.Image scaledImage = image.getScaledInstance(300, 300, image.SCALE_SMOOTH);
 
             // Crear y devolver el ImageIcon
             return new ImageIcon(scaledImage);
