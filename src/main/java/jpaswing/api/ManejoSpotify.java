@@ -1,5 +1,6 @@
 package jpaswing.api;
 
+import jpaswing.Codigos;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
 import jpaswing.repository.ArtistaRepository;
@@ -24,8 +25,8 @@ import java.util.Optional;
 @Component
 public class ManejoSpotify {
 
-    private final String clientId = "";
-    private final String clientSecret = "";
+    private final String clientId = Codigos.clientID;
+    private final String clientSecret = Codigos.secretCliente;
 
     private final CancionRepository cancionRepository;
     private final ArtistaRepository artistaRepository;
