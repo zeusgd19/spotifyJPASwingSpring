@@ -11,8 +11,11 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
+import se.michaelthelin.spotify.requests.data.tracks.GetSeveralTracksRequest;
 import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import javax.imageio.ImageIO;
@@ -68,7 +71,7 @@ public class ManejoSpotify {
         return "";
     }
 
-    public Track[] getTracks(Cancion cancion, Artista artista) throws IOException, ParseException {
+    public Track[] getTracks(String busqueda) throws IOException, ParseException, SpotifyWebApiException {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -86,7 +89,11 @@ public class ManejoSpotify {
             System.out.println("Error: " + e.getMessage());
         }
 
-        return null;
+        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(15).build();
+
+        Paging<Track> pagingtracks = searchTracksRequest.execute();
+
+        return pagingtracks.getItems();
     }
 
     public Icon getImage(Cancion cancion) throws ParseException, SpotifyWebApiException {
