@@ -7,4 +7,5 @@ import org.springframework.stereotype.Component;
 @Component
 public interface CancionRepository extends CrudRepository<Cancion, Long> {
     Cancion findFirstByOrderByIdAsc();
+    Cancion findByName(String name);
 }

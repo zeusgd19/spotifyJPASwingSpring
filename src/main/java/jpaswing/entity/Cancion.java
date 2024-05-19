@@ -2,6 +2,8 @@ package jpaswing.entity;
 
 import jakarta.persistence.*;
 
+import javax.swing.*;
+
 @Entity
 public class Cancion {
     @Id
@@ -11,6 +13,7 @@ public class Cancion {
     private String name;
     private String url;
     private String idreal;
+    private String image;
 
     @JoinColumn(name = "id_artista")
     @ManyToOne(fetch = FetchType.EAGER)
@@ -61,5 +64,13 @@ public class Cancion {
 
     public void setArtista(Artista artista) {
         this.artista = artista;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

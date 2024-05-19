@@ -15,7 +15,6 @@ import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
-import se.michaelthelin.spotify.requests.data.tracks.GetSeveralTracksRequest;
 import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import javax.imageio.ImageIO;
@@ -33,11 +32,15 @@ public class ManejoSpotify {
     private final CancionRepository cancionRepository;
     private final ArtistaRepository artistaRepository;
 
+    private boolean isNull = false;
+
     public ManejoSpotify(CancionRepository cancionRepository, ArtistaRepository artistaRepository) {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
     }
-    public String getSong(Cancion cancion, Artista artista) throws IOException, ParseException {
+    public void saveSong(String busqueda,Track track) {
+        Artista artista;
+        Cancion cancion;
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -55,20 +58,28 @@ public class ManejoSpotify {
             System.out.println("Error: " + e.getMessage());
         }
 
-        GetTrackRequest getTrackRequest = spotifyApi.getTrack(cancion.getIdreal()).build();
-        try {
-            Track track = getTrackRequest.execute();
+
+        if(track.getPreviewUrl() == null){
+            JOptionPane.showMessageDialog(null,"Este track no tiene una cancion previa, porfavor seleccione otra canción");
+            isNull = true;
+            return;
+        }
+        if(artistaRepository.findByName(track.getArtists()[0].getName()) == null) {
+            artista = new Artista();
             artista.setName(track.getArtists()[0].getName());
             artistaRepository.save(artista);
+        } else {
+            artista= artistaRepository.findByName(track.getArtists()[0].getName());
+        }
+        if(cancionRepository.findByName(track.getName()) == null) {
+            cancion = new Cancion();
+            cancion.setIdreal(track.getId());
             cancion.setUrl(track.getPreviewUrl());
             cancion.setArtista(artista);
+            cancion.setName(track.getName());
+            cancion.setImage(track.getAlbum().getImages()[0].getUrl());
             cancionRepository.save(cancion);
-            return track.getPreviewUrl();
-        } catch (IOException | SpotifyWebApiException e) {
-            System.out.println("Error: " + e.getMessage());
         }
-
-        return "";
     }
 
     public Track[] getTracks(String busqueda) throws IOException, ParseException, SpotifyWebApiException {
@@ -84,19 +95,23 @@ public class ManejoSpotify {
             ClientCredentials clientCredentials = clientCredentialsRequest.execute();
             // Set access token for further "spotifyApi" object usage
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-            System.out.println(clientCredentials.getAccessToken());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
-        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(15).build();
+        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(30).build();
 
         Paging<Track> pagingtracks = searchTracksRequest.execute();
+
+        for (Track track : pagingtracks.getItems()) {
+            System.out.println(track.getPreviewUrl());
+            System.out.println(track.getId());
+        }
 
         return pagingtracks.getItems();
     }
 
-    public Icon getImage(Cancion cancion) throws ParseException, SpotifyWebApiException {
+    public Track getSong(String id) throws IOException, ParseException, SpotifyWebApiException {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -109,7 +124,28 @@ public class ManejoSpotify {
             ClientCredentials clientCredentials = clientCredentialsRequest.execute();
             // Set access token for further "spotifyApi" object usage
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-            System.out.println(clientCredentials.getAccessToken());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        GetTrackRequest getTrackRequest = spotifyApi.getTrack(id).build();
+        return getTrackRequest.execute();
+    }
+
+
+    /*public Icon getImage(Cancion cancion) throws ParseException, SpotifyWebApiException {
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .build();
+
+        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
+                .build();
+
+        try {
+            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            // Set access token for further "spotifyApi" object usage
+            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -127,7 +163,9 @@ public class ManejoSpotify {
         return null;
     }
 
-    public static ImageIcon obtenerIconoDesdeURL(String imageUrl) {
+     */
+
+   /* public static ImageIcon obtenerIconoDesdeURL(String imageUrl) {
         try {
             // Cargar la imagen desde la URL
             BufferedImage image = ImageIO.read(new URL(imageUrl));
@@ -141,5 +179,15 @@ public class ManejoSpotify {
             e.printStackTrace();
             return null;
         }
+    }
+
+    */
+
+    public boolean isNull() {
+        return isNull;
+    }
+
+    public void setNull(boolean aNull) {
+        isNull = aNull;
     }
 }
