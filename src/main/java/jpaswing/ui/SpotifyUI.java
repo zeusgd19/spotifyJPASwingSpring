@@ -133,6 +133,7 @@ public class SpotifyUI extends JFrame {
             player = getPlayer();
             paused = true;
             valor = 1;
+            panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
             updateData();
             panelSpotifyAbajoBiblioteca.showPlayButton();
         } catch (ParseException | SpotifyWebApiException e) {
@@ -149,6 +150,7 @@ public class SpotifyUI extends JFrame {
             player = getPlayer();
             paused = true;
             valor = 1;
+            panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
             updateData();
             panelSpotifyAbajoBiblioteca.showPlayButton();
         } catch (ParseException | SpotifyWebApiException e) {
@@ -163,7 +165,6 @@ public class SpotifyUI extends JFrame {
             JOptionPane.showMessageDialog(panelSpotifyCentral1, "DEBES SELECCIONAR UNA CANCION");
         } else {
             String[] partes = String.valueOf(panelSpotifyCentral1.getCanciones().getSelectedItem()).split(" ID:");
-            System.out.println(partes.length);
             Track track = manejoSpotify.getSong(partes[1]);
             manejoSpotify.saveSong(String.valueOf(panelSpotifyCentral1.getCanciones().getSelectedItem()),track);
             if(!manejoSpotify.isNull()) {
