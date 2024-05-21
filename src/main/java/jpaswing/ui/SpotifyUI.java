@@ -4,26 +4,22 @@ import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 import jpaswing.api.ManejoSpotify;
 import jpaswing.controller.CancionController;
-import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
 import jpaswing.repository.CancionRepository;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 public class SpotifyUI extends JFrame {
@@ -43,9 +39,13 @@ public class SpotifyUI extends JFrame {
     private Clip clip;
     private AudioInputStream audioInputStream;
     private int valor = 1;
+    private String[] idsTrack;
+    private String[] idsArtists;
+    private Font font = null;
 
     public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
-        super("Spotify");
+        /*this.setFont(new Font("Gotham",Font.ITALIC,15));*/
+        this.setTitle("Spotify");
         this.setLayout(null);
         this.setSize(800, 600);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -66,7 +66,7 @@ public class SpotifyUI extends JFrame {
         player = getPlayer();
 
         panelSpotifyLateral = new SpotifyLateralPanel(this);
-        panelSpotifyArriba = new SpotifyArribaPanel();
+        panelSpotifyArriba = new SpotifyArribaPanel(this);
         panelSpotifyAbajoBiblioteca = new SpotifyAbajoBibliotecaPanel(this);
         panelSpotifyAbajoBuscar = new SpotifyAbajoBuscarPanel(this);
         panelSpotifyCentral1 = new SpotifyCentral1Panel(this);
@@ -78,6 +78,20 @@ public class SpotifyUI extends JFrame {
         this.add(panelSpotifyCentral2);
         this.add(panelSpotifyAbajoBuscar);
         this.add(panelSpotifyCentral1);
+    }
+
+    public Font customFont() {
+        String fontName = "src/fuente/GothamBoldItalic.ttf" ;
+        try {
+            //Se carga la fuente
+            File file = new File(fontName);
+            font = Font.createFont(Font.TRUETYPE_FONT,file);
+        } catch (Exception ex) {
+            //Si existe un error se carga fuente por defecto ARIAL
+            System.err.println(fontName + " No se cargo la fuente");
+            font = new Font("Arial", Font.PLAIN, 14);
+        }
+        return font;
     }
 
     public void showBibliotecaPanel() {
@@ -110,6 +124,7 @@ public class SpotifyUI extends JFrame {
         clip = AudioSystem.getClip();
         Icon ImagenCentral = new ImageIcon("src/fotos/mondongo.jpg");
 
+        panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(false);
         panelSpotifyCentral1.clearTracks();
         if (panelSpotifyCentral1.getSearchText().equalsIgnoreCase("Mondongo")) {
             panelSpotifyCentral1.showImage(ImagenCentral);
@@ -117,15 +132,45 @@ public class SpotifyUI extends JFrame {
             clip.start();
         } else if(panelSpotifyCentral1.getSearchText().isEmpty()) {
             panelSpotifyCentral1.getCanciones().removeAllItems();
-        } else {
+        } else if(panelSpotifyCentral1.getSearchText().contains("Artista:")){
+            panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(true);
+            panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
             panelSpotifyCentral1.hideImage();
             panelSpotifyCentral1.clearTracks();
+            String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"),panelSpotifyCentral1.getSearchText().length() - 1);
+            idsArtists = new String[manejoSpotify.getArtists(artista).length];
+            int i = 0;
+            for (Artist artist : manejoSpotify.getArtists(artista)) {
+                panelSpotifyCentral1.addTrackOrArtist(artist.getName());
+                idsArtists[i] = artist.getId();
+                i++;
+            }
+        }else {
+            panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
+            panelSpotifyCentral1.hideImage();
+            panelSpotifyCentral1.clearTracks();
+            int i = 0;
+            idsTrack = new String[manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText()).length];
             for (Track track : manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText())) {
-                panelSpotifyCentral1.addTrack(track.getName() + " " + track.getArtists()[0].getName() + " ID:" + track.getId());
+                panelSpotifyCentral1.addTrackOrArtist(track.getName() + " " + track.getArtists()[0].getName());
+                idsTrack[i] = track.getId();
+                i++;
             }
         }
     }
 
+    public void searchArtistSongs() throws IOException, ParseException, SpotifyWebApiException {
+        int i = 0;
+        int posicion = panelSpotifyCentral1.getCanciones().getSelectedIndex();
+        panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
+        panelSpotifyCentral1.clearTracks();
+        idsTrack = new String[manejoSpotify.getArtistTracks(idsArtists[posicion]).length];
+        for (Track track:manejoSpotify.getArtistTracks(idsArtists[posicion])){
+            panelSpotifyCentral1.addTrackOrArtist(track.getName());
+            idsTrack[i] = track.getId();
+            i++;
+        }
+    }
     public void nextSong() {
         try {
             this.cancion = cancionController.next().orElse(null);
@@ -164,9 +209,8 @@ public class SpotifyUI extends JFrame {
         if (panelSpotifyCentral1.getCanciones().getSelectedItem() == null) {
             JOptionPane.showMessageDialog(panelSpotifyCentral1, "DEBES SELECCIONAR UNA CANCION");
         } else {
-            String[] partes = String.valueOf(panelSpotifyCentral1.getCanciones().getSelectedItem()).split(" ID:");
-            Track track = manejoSpotify.getSong(partes[1]);
-            manejoSpotify.saveSong(String.valueOf(panelSpotifyCentral1.getCanciones().getSelectedItem()),track);
+            Track track = manejoSpotify.getSong(idsTrack[panelSpotifyCentral1.getCanciones().getSelectedIndex()]);
+            manejoSpotify.saveSong(track);
             if(!manejoSpotify.isNull()) {
                 JOptionPane.showMessageDialog(panelSpotifyCentral1, "CANCION GUARDADA CORRECTAMENTE");
             }
@@ -187,7 +231,7 @@ public class SpotifyUI extends JFrame {
     public void pauseMusic() {
         paused = true;
         panelSpotifyAbajoBiblioteca.showPlayButton();
-        valor+=4;
+        valor+=2;
     }
 
     public void playMusic(Player player) {
@@ -209,19 +253,17 @@ public class SpotifyUI extends JFrame {
 
     public void playProgres() {
         new Thread(() -> {
-            try {
-                playProgress();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            while (!paused) {
+                try {
+                    panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
+                    Thread.sleep(100);
+                    valor++;
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         }).start();
-    }
-    public void playProgress() throws InterruptedException {
-        while (!paused) {
-            panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
-            Thread.sleep(100);
-            valor++;
-        }
     }
 
     public Player getPlayer() throws JavaLayerException, IOException, ParseException {

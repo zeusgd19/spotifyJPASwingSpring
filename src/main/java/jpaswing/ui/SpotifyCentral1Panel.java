@@ -61,7 +61,7 @@ public class SpotifyCentral1Panel extends JPanel {
         labelCentral.setVisible(false);
     }
 
-    public void addTrack(String trackName) {
+    public void addTrackOrArtist(String trackName) {
         canciones.addItem(trackName);
     }
 

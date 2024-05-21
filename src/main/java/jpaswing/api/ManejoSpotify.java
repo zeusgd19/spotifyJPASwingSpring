@@ -1,5 +1,6 @@
 package jpaswing.api;
 
+import com.neovisionaries.i18n.CountryCode;
 import jpaswing.Codigos;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
@@ -10,18 +11,17 @@ import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
-import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import se.michaelthelin.spotify.requests.data.artists.GetArtistsTopTracksRequest;
+import se.michaelthelin.spotify.requests.data.search.simplified.SearchArtistsRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
 import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
 
 @Component
 public class ManejoSpotify {
@@ -38,7 +38,8 @@ public class ManejoSpotify {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
     }
-    public void saveSong(String busqueda,Track track) {
+    public void saveSong(Track track) {
+        isNull = false;
         Artista artista;
         Cancion cancion;
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
@@ -109,6 +110,51 @@ public class ManejoSpotify {
         }
 
         return pagingtracks.getItems();
+    }
+
+    public Track[] getArtistTracks(String artista) throws IOException, ParseException, SpotifyWebApiException {
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .build();
+
+        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
+                .build();
+
+        try {
+            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            // Set access token for further "spotifyApi" object usage
+            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        GetArtistsTopTracksRequest searchTracksRequest = spotifyApi.getArtistsTopTracks(artista,CountryCode.ES).build();
+
+        Track[] tracks = searchTracksRequest.execute();
+        return tracks;
+    }
+
+    public Artist[] getArtists(String artista) throws IOException, ParseException, SpotifyWebApiException {
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .build();
+
+        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
+                .build();
+
+        try {
+            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            // Set access token for further "spotifyApi" object usage
+            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        SearchArtistsRequest getArtistRequest = spotifyApi.searchArtists(artista).limit(40).build();
+        Paging<Artist> artistPaging = getArtistRequest.execute();
+        return artistPaging.getItems();
     }
 
     public Track getSong(String id) throws IOException, ParseException, SpotifyWebApiException {

@@ -5,8 +5,9 @@ import java.awt.*;
 
 public class SpotifyArribaPanel extends JPanel {
     private JLabel titulo;
-
-    public SpotifyArribaPanel() {
+    private SpotifyUI mainframe;
+    public SpotifyArribaPanel(SpotifyUI spotifyUI) {
+        mainframe = spotifyUI;
         initComponents();
     }
 
@@ -16,9 +17,9 @@ public class SpotifyArribaPanel extends JPanel {
         this.setBackground(Color.BLACK);
 
         titulo = new JLabel("SPOTIFY");
-        titulo.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        this.setFont(mainframe.customFont());
         titulo.setForeground(Color.GREEN);
-        titulo.setBounds(350, 10, 100, 20);
+        titulo.setBounds(this.getWidth() / 2 - 25, 10, 100, 20);
         this.add(titulo);
     }
 }
