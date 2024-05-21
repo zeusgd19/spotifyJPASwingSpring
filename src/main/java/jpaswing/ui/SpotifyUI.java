@@ -12,13 +12,16 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 
 @Component
@@ -42,6 +45,7 @@ public class SpotifyUI extends JFrame {
     private String[] idsTrack;
     private String[] idsArtists;
     private Font font = null;
+    private  boolean clicked = false;
 
     public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         /*this.setFont(new Font("Gotham",Font.ITALIC,15));*/
@@ -137,11 +141,13 @@ public class SpotifyUI extends JFrame {
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
             panelSpotifyCentral1.hideImage();
             panelSpotifyCentral1.clearTracks();
+            panelSpotifyCentral1.clearTrackPanel();
             String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"),panelSpotifyCentral1.getSearchText().length() - 1);
             idsArtists = new String[manejoSpotify.getArtists(artista).length];
             int i = 0;
             for (Artist artist : manejoSpotify.getArtists(artista)) {
                 panelSpotifyCentral1.addTrackOrArtist(artist.getName());
+                panelSpotifyCentral1.addTrack(addPanelArtist(artist));
                 idsArtists[i] = artist.getId();
                 i++;
             }
@@ -149,10 +155,12 @@ public class SpotifyUI extends JFrame {
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
             panelSpotifyCentral1.hideImage();
             panelSpotifyCentral1.clearTracks();
+            panelSpotifyCentral1.clearTrackPanel();
             int i = 0;
             idsTrack = new String[manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText()).length];
             for (Track track : manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText())) {
                 panelSpotifyCentral1.addTrackOrArtist(track.getName() + " " + track.getArtists()[0].getName());
+                panelSpotifyCentral1.addTrack(addPanel(track));
                 idsTrack[i] = track.getId();
                 i++;
             }
@@ -218,6 +226,77 @@ public class SpotifyUI extends JFrame {
         }
     }
 
+    public JPanel addPanel(Track track) throws IOException {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setMaximumSize(new Dimension(750, 100));
+        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        JLabel label = new JLabel();
+        BufferedImage image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
+        Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
+        label.setIcon(new ImageIcon(scaledImage));
+        label.setBounds(0,0,50,50);
+
+        JLabel label1 = new JLabel();
+        label1.setText(track.getName());
+        label1.setBounds(panel.getWidth() / 2,0,100,40);
+
+        panel.add(label, BorderLayout.WEST);
+        panel.add(label1,BorderLayout.CENTER);
+
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                panel.setBackground(Color.cyan);
+                clicked = true;
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if(!clicked) {
+                    panel.setBackground(Color.gray);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if(!clicked) {
+                    panel.setBackground(new Color(238, 238, 238));
+                }
+            }
+        });
+
+        return panel;
+    }
+
+    public JPanel addPanelArtist(Artist artist) throws IOException {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setMaximumSize(new Dimension(750, 100));
+        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        JLabel label = new JLabel();
+        if(hasPhoto(artist)) {
+            BufferedImage image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
+            Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
+            label.setIcon(new ImageIcon(scaledImage));
+            label.setBounds(0, 0, 50, 50);
+        }
+
+        JLabel label1 = new JLabel();
+        label1.setText(artist.getName());
+        label1.setBounds(panel.getWidth() / 2,0,100,40);
+
+        panel.add(label, BorderLayout.WEST);
+        panel.add(label1,BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    public boolean hasPhoto(Artist artist){
+        return artist.getImages().length >= 1;
+    }
 
     public void playMusic() throws IOException, ParseException, JavaLayerException {
         paused = false;

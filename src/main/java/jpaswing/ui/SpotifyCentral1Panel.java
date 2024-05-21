@@ -17,6 +17,9 @@ public class SpotifyCentral1Panel extends JPanel {
     private JTextField buscador;
     private SpotifyUI mainFrame;
 
+    private JPanel results;
+    private JScrollPane scrollPane;
+
     public SpotifyCentral1Panel(SpotifyUI mainFrame) {
         this.mainFrame = mainFrame;
         initComponents();
@@ -29,6 +32,7 @@ public class SpotifyCentral1Panel extends JPanel {
 
         canciones = new JComboBox<>();
         canciones.setBounds(0, 30, this.getWidth(), 40);
+        canciones.setVisible(false);
         this.add(canciones);
 
         labelCentral = new JLabel();
@@ -49,6 +53,15 @@ public class SpotifyCentral1Panel extends JPanel {
                 throw new RuntimeException(ex);
             }
         });
+
+        results = new JPanel();
+        results.setLayout(new BoxLayout(results,BoxLayout.Y_AXIS));
+
+        scrollPane = new JScrollPane(results);
+        scrollPane.setBackground(Color.gray);
+        scrollPane.setBounds(0,40,this.getWidth(),this.getHeight() - 40);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        this.add(scrollPane);
         this.add(buscador);
     }
 
@@ -65,6 +78,17 @@ public class SpotifyCentral1Panel extends JPanel {
         canciones.addItem(trackName);
     }
 
+    public void addTrack(JPanel panel){
+        results.add(panel);
+        results.revalidate();
+        results.repaint();
+    }
+
+    public void clearTrackPanel(){
+        results.removeAll();
+        results.revalidate();
+        results.repaint();
+    }
     public void clearTracks() {
         canciones.removeAllItems();
     }
@@ -95,5 +119,13 @@ public class SpotifyCentral1Panel extends JPanel {
 
     public void setBuscador(JTextField buscador) {
         this.buscador = buscador;
+    }
+
+    public JPanel getResults() {
+        return results;
+    }
+
+    public void setResults(JPanel results) {
+        this.results = results;
     }
 }

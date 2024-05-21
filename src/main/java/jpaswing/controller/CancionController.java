@@ -42,7 +42,7 @@ public class CancionController {
 
     public Optional<Cancion> previous(){
         //Si ya estoy al principio, devuelvo el libro actual
-        if (currentPage == 0) return currentCancion;
+        if (currentPage == 0) return getCancion();
 
         currentPage--;
         return getCancion();

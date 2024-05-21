@@ -100,7 +100,7 @@ public class ManejoSpotify {
             System.out.println("Error: " + e.getMessage());
         }
 
-        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(30).build();
+        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(19).build();
 
         Paging<Track> pagingtracks = searchTracksRequest.execute();
 
