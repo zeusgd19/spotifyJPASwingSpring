@@ -4,7 +4,9 @@ import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 import jpaswing.api.ManejoSpotify;
 import jpaswing.controller.CancionController;
+import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
+import jpaswing.repository.ArtistaRepository;
 import jpaswing.repository.CancionRepository;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Component;
@@ -34,21 +36,21 @@ public class SpotifyUI extends JFrame {
     private SpotifyCentral2Panel panelSpotifyCentral2;
 
     private Cancion cancion;
-    private ManejoSpotify manejoSpotify;
-    private CancionController cancionController;
+    private final ManejoSpotify manejoSpotify;
+    private final CancionController cancionController;
+    private final CancionRepository cancionRepository;
+    private final ArtistaRepository artistaRepository;
 
     private boolean paused;
     private Player player;
     private Clip clip;
     private AudioInputStream audioInputStream;
     private int valor = 1;
-    private String[] idsTrack;
-    private String[] idsArtists;
     private Font font = null;
     private JPanel selectedPanel = null;
     private int idPanel = 0;
 
-    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
+    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController,ArtistaRepository artistaRepository) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         /*this.setFont(new Font("Gotham",Font.ITALIC,15));*/
         this.setTitle("Spotify");
         this.setLayout(null);
@@ -56,7 +58,9 @@ public class SpotifyUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        this.cancionRepository = cancionRepository;
         this.cancion = cancionRepository.findFirstByOrderByIdAsc();
+        this.artistaRepository = artistaRepository;
         this.manejoSpotify = manejoSpotify;
         this.cancionController = cancionController;
         initComponents();
@@ -223,6 +227,12 @@ public class SpotifyUI extends JFrame {
 
         JLabel label = new JLabel();
         BufferedImage image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
+        for (Cancion cancion1:cancionRepository.findAll()){
+            if(cancion1.getImage().equals(track.getAlbum().getImages()[0].getUrl())) {
+                image = ImageIO.read(new URL(cancion1.getImage()));
+                break;
+            }
+        }
         Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
         label.setIcon(new ImageIcon(scaledImage));
         label.setBounds(0,0,50,50);
@@ -271,12 +281,19 @@ public class SpotifyUI extends JFrame {
         panel.putClientProperty("panelId",id);
 
         JLabel label = new JLabel();
+        BufferedImage image;
         if(hasPhoto(artist)) {
-            BufferedImage image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
+            image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
+            for (Artista artista:artistaRepository.findAll()){
+                if(artista.getImage().equals(artist.getImages()[0].getUrl())) {
+                    image = ImageIO.read(new URL(artista.getImage()));
+                }
+            }
             Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
             label.setIcon(new ImageIcon(scaledImage));
             label.setBounds(0, 0, 50, 50);
         }
+
 
         JLabel label1 = new JLabel();
         label1.setText(artist.getName());
@@ -316,6 +333,7 @@ public class SpotifyUI extends JFrame {
     public boolean hasPhoto(Artist artist){
         return artist.getImages().length >= 1;
     }
+
 
     public void playMusic() throws IOException, ParseException, JavaLayerException {
         paused = false;

@@ -6,6 +6,7 @@ import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
 import jpaswing.repository.ArtistaRepository;
 import jpaswing.repository.CancionRepository;
+import jpaswing.ui.SpotifyUI;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -15,6 +16,7 @@ import se.michaelthelin.spotify.model_objects.specification.Artist;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import se.michaelthelin.spotify.requests.data.artists.GetArtistRequest;
 import se.michaelthelin.spotify.requests.data.artists.GetArtistsTopTracksRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchArtistsRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
@@ -22,6 +24,10 @@ import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class ManejoSpotify {
@@ -34,30 +40,18 @@ public class ManejoSpotify {
 
     private boolean isNull = false;
 
+    private Map<String, Track[]> searchCache = new HashMap<>();
+    private Map<String, Artist[]> artistCache = new HashMap<>();
+
     public ManejoSpotify(CancionRepository cancionRepository, ArtistaRepository artistaRepository) {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
     }
-    public void saveSong(Track track) {
+    public void saveSong(Track track) throws IOException, ParseException, SpotifyWebApiException {
         isNull = false;
         Artista artista;
         Cancion cancion;
-        SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setClientId(clientId)
-                .setClientSecret(clientSecret)
-                .build();
-
-        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
-                .build();
-
-        try {
-            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-
-            // Set access token for further "spotifyApi" object usage
-            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        getSpotify();
 
 
         if(track.getPreviewUrl() == null){
@@ -68,6 +62,8 @@ public class ManejoSpotify {
         if(artistaRepository.findByName(track.getArtists()[0].getName()) == null) {
             artista = new Artista();
             artista.setName(track.getArtists()[0].getName());
+            Artist artist = getArtist(track.getArtists()[0].getId());
+            artista.setImage(artist.getImages()[0].getUrl());
             artistaRepository.save(artista);
         } else {
             artista= artistaRepository.findByName(track.getArtists()[0].getName());
@@ -84,35 +80,23 @@ public class ManejoSpotify {
     }
 
     public Track[] getTracks(String busqueda) throws IOException, ParseException, SpotifyWebApiException {
-        SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setClientId(clientId)
-                .setClientSecret(clientSecret)
-                .build();
-
-        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
-                .build();
-
-        try {
-            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-            // Set access token for further "spotifyApi" object usage
-            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+        if (searchCache.containsKey(busqueda)) {
+            return searchCache.get(busqueda);
         }
 
-        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda).limit(19).build();
+        SpotifyApi spotifyApi = getSpotify();
+
+
+        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(busqueda)
+                .limit(19).build();
 
         Paging<Track> pagingtracks = searchTracksRequest.execute();
 
-        for (Track track : pagingtracks.getItems()) {
-            System.out.println(track.getPreviewUrl());
-            System.out.println(track.getId());
-        }
-
+        searchCache.put(busqueda, pagingtracks.getItems());
         return pagingtracks.getItems();
     }
 
-    public Track[] getArtistTracks(String artista) throws IOException, ParseException, SpotifyWebApiException {
+    private SpotifyApi getSpotify() {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
@@ -128,6 +112,18 @@ public class ManejoSpotify {
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
+        return spotifyApi;
+    }
+
+    public Artist getArtist(String id) throws IOException, ParseException, SpotifyWebApiException {
+        SpotifyApi spotifyApi = getSpotify();
+        GetArtistRequest artistRequest = spotifyApi.getArtist(id).build();
+
+        return artistRequest.execute();
+    }
+
+    public Track[] getArtistTracks(String artista) throws IOException, ParseException, SpotifyWebApiException {
+        SpotifyApi spotifyApi = getSpotify();
 
         GetArtistsTopTracksRequest searchTracksRequest = spotifyApi.getArtistsTopTracks(artista,CountryCode.ES).build();
 
@@ -136,43 +132,20 @@ public class ManejoSpotify {
     }
 
     public Artist[] getArtists(String artista) throws IOException, ParseException, SpotifyWebApiException {
-        SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setClientId(clientId)
-                .setClientSecret(clientSecret)
-                .build();
-
-        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
-                .build();
-
-        try {
-            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-            // Set access token for further "spotifyApi" object usage
-            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+        if (artistCache.containsKey(artista)) {
+            return artistCache.get(artista);
         }
 
-        SearchArtistsRequest getArtistRequest = spotifyApi.searchArtists(artista).limit(40).build();
+        SpotifyApi spotifyApi = getSpotify();
+
+        SearchArtistsRequest getArtistRequest = spotifyApi.searchArtists(artista).limit(20).build();
         Paging<Artist> artistPaging = getArtistRequest.execute();
+        artistCache.put(artista, artistPaging.getItems());
         return artistPaging.getItems();
     }
 
     public Track getSong(String id) throws IOException, ParseException, SpotifyWebApiException {
-        SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setClientId(clientId)
-                .setClientSecret(clientSecret)
-                .build();
-
-        ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
-                .build();
-
-        try {
-            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-            // Set access token for further "spotifyApi" object usage
-            spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        SpotifyApi spotifyApi = getSpotify();
 
         GetTrackRequest getTrackRequest = spotifyApi.getTrack(id).build();
         return getTrackRequest.execute();

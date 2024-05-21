@@ -11,6 +11,7 @@ public class Artista {
     private Long id;
 
     private String name;
+    private String image;
 
     @OneToMany(mappedBy = "artista", fetch = FetchType.EAGER)
     private List<Cancion> canciones;
@@ -43,5 +44,13 @@ public class Artista {
 
     public void setCanciones(List<Cancion> canciones) {
         this.canciones = canciones;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
