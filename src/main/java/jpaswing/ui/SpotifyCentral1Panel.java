@@ -12,7 +12,7 @@ import java.awt.*;
 import java.io.IOException;
 
 public class SpotifyCentral1Panel extends JPanel {
-    private JComboBox canciones;
+
     private JLabel labelCentral;
     private JTextField buscador;
     private SpotifyUI mainFrame;
@@ -29,11 +29,6 @@ public class SpotifyCentral1Panel extends JPanel {
         this.setLayout(null);
         this.setBounds(50, 40, 750, 455);
         this.setBackground(Color.GRAY);
-
-        canciones = new JComboBox<>();
-        canciones.setBounds(0, 30, this.getWidth(), 40);
-        canciones.setVisible(false);
-        this.add(canciones);
 
         labelCentral = new JLabel();
         labelCentral.setBounds(0, 0, this.getWidth(), this.getHeight() + 300);
@@ -56,9 +51,9 @@ public class SpotifyCentral1Panel extends JPanel {
 
         results = new JPanel();
         results.setLayout(new BoxLayout(results,BoxLayout.Y_AXIS));
+        results.setBackground(Color.gray);
 
         scrollPane = new JScrollPane(results);
-        scrollPane.setBackground(Color.gray);
         scrollPane.setBounds(0,40,this.getWidth(),this.getHeight() - 40);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         this.add(scrollPane);
@@ -74,10 +69,6 @@ public class SpotifyCentral1Panel extends JPanel {
         labelCentral.setVisible(false);
     }
 
-    public void addTrackOrArtist(String trackName) {
-        canciones.addItem(trackName);
-    }
-
     public void addTrack(JPanel panel){
         results.add(panel);
         results.revalidate();
@@ -89,21 +80,11 @@ public class SpotifyCentral1Panel extends JPanel {
         results.revalidate();
         results.repaint();
     }
-    public void clearTracks() {
-        canciones.removeAllItems();
-    }
 
     public String getSearchText() {
         return buscador.getText();
     }
 
-    public JComboBox getCanciones() {
-        return canciones;
-    }
-
-    public void setCanciones(JComboBox canciones) {
-        this.canciones = canciones;
-    }
 
     public JLabel getLabelCentral() {
         return labelCentral;

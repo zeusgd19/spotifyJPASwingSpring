@@ -26,7 +26,7 @@ import java.net.URL;
 
 @Component
 public class SpotifyUI extends JFrame {
-    private SpotifyLateralPanel panelSpotifyLateral; 
+    private SpotifyLateralPanel panelSpotifyLateral;
     private SpotifyArribaPanel panelSpotifyArriba;
     private SpotifyAbajoBuscarPanel panelSpotifyAbajoBuscar;
     private SpotifyAbajoBibliotecaPanel panelSpotifyAbajoBiblioteca;
@@ -45,7 +45,8 @@ public class SpotifyUI extends JFrame {
     private String[] idsTrack;
     private String[] idsArtists;
     private Font font = null;
-    private  boolean clicked = false;
+    private JPanel selectedPanel = null;
+    private int idPanel = 0;
 
     public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         /*this.setFont(new Font("Gotham",Font.ITALIC,15));*/
@@ -105,7 +106,7 @@ public class SpotifyUI extends JFrame {
         panelSpotifyCentral1.setVisible(false);
         panelSpotifyCentral1.getLabelCentral().setVisible(false);
         panelSpotifyCentral1.getBuscador().setText("");
-        panelSpotifyCentral1.getCanciones().removeAllItems();
+        panelSpotifyCentral1.clearTrackPanel();
     }
 
     public void showBuscarPanel() {
@@ -129,54 +130,40 @@ public class SpotifyUI extends JFrame {
         Icon ImagenCentral = new ImageIcon("src/fotos/mondongo.jpg");
 
         panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(false);
-        panelSpotifyCentral1.clearTracks();
+        panelSpotifyCentral1.clearTrackPanel();
         if (panelSpotifyCentral1.getSearchText().equalsIgnoreCase("Mondongo")) {
             panelSpotifyCentral1.showImage(ImagenCentral);
             clip.open(audioInputStream);
             clip.start();
         } else if(panelSpotifyCentral1.getSearchText().isEmpty()) {
-            panelSpotifyCentral1.getCanciones().removeAllItems();
+            panelSpotifyCentral1.clearTrackPanel();
         } else if(panelSpotifyCentral1.getSearchText().contains("Artista:")){
             panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(true);
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
             panelSpotifyCentral1.hideImage();
-            panelSpotifyCentral1.clearTracks();
             panelSpotifyCentral1.clearTrackPanel();
             String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"),panelSpotifyCentral1.getSearchText().length() - 1);
-            idsArtists = new String[manejoSpotify.getArtists(artista).length];
-            int i = 0;
+
             for (Artist artist : manejoSpotify.getArtists(artista)) {
-                panelSpotifyCentral1.addTrackOrArtist(artist.getName());
-                panelSpotifyCentral1.addTrack(addPanelArtist(artist));
-                idsArtists[i] = artist.getId();
-                i++;
+                panelSpotifyCentral1.addTrack(addPanelArtist(artist,artist.getId()));
             }
         }else {
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
             panelSpotifyCentral1.hideImage();
-            panelSpotifyCentral1.clearTracks();
             panelSpotifyCentral1.clearTrackPanel();
-            int i = 0;
-            idsTrack = new String[manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText()).length];
+
             for (Track track : manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText())) {
-                panelSpotifyCentral1.addTrackOrArtist(track.getName() + " " + track.getArtists()[0].getName());
-                panelSpotifyCentral1.addTrack(addPanel(track));
-                idsTrack[i] = track.getId();
-                i++;
+                panelSpotifyCentral1.addTrack(addPanel(track,track.getId()));
             }
         }
     }
 
     public void searchArtistSongs() throws IOException, ParseException, SpotifyWebApiException {
-        int i = 0;
-        int posicion = panelSpotifyCentral1.getCanciones().getSelectedIndex();
         panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
-        panelSpotifyCentral1.clearTracks();
-        idsTrack = new String[manejoSpotify.getArtistTracks(idsArtists[posicion]).length];
-        for (Track track:manejoSpotify.getArtistTracks(idsArtists[posicion])){
-            panelSpotifyCentral1.addTrackOrArtist(track.getName());
-            idsTrack[i] = track.getId();
-            i++;
+        panelSpotifyCentral1.clearTrackPanel();
+
+        for (Track track:manejoSpotify.getArtistTracks((String) selectedPanel.getClientProperty("panelId"))){
+            panelSpotifyCentral1.addTrack(addPanel(track,track.getId()));
         }
     }
     public void nextSong() {
@@ -214,10 +201,10 @@ public class SpotifyUI extends JFrame {
     }
 
     public void saveCancion() throws IOException, ParseException, SpotifyWebApiException {
-        if (panelSpotifyCentral1.getCanciones().getSelectedItem() == null) {
+        if (selectedPanel == null) {
             JOptionPane.showMessageDialog(panelSpotifyCentral1, "DEBES SELECCIONAR UNA CANCION");
         } else {
-            Track track = manejoSpotify.getSong(idsTrack[panelSpotifyCentral1.getCanciones().getSelectedIndex()]);
+            Track track = manejoSpotify.getSong((String) selectedPanel.getClientProperty("panelId"));
             manejoSpotify.saveSong(track);
             if(!manejoSpotify.isNull()) {
                 JOptionPane.showMessageDialog(panelSpotifyCentral1, "CANCION GUARDADA CORRECTAMENTE");
@@ -226,11 +213,13 @@ public class SpotifyUI extends JFrame {
         }
     }
 
-    public JPanel addPanel(Track track) throws IOException {
+    public JPanel addPanel(Track track,String id) throws IOException {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setMaximumSize(new Dimension(750, 100));
         panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        panel.putClientProperty("panelId",id);
 
         JLabel label = new JLabel();
         BufferedImage image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
@@ -248,20 +237,23 @@ public class SpotifyUI extends JFrame {
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (selectedPanel != null) {
+                    selectedPanel.setBackground(new Color(238, 238, 238)); // Color original
+                }
                 panel.setBackground(Color.cyan);
-                clicked = true;
+                selectedPanel = panel; // Actualiza el panel actualmente seleccionado
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                if(!clicked) {
+                if (panel != selectedPanel) {
                     panel.setBackground(Color.gray);
                 }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if(!clicked) {
+                if (panel != selectedPanel) {
                     panel.setBackground(new Color(238, 238, 238));
                 }
             }
@@ -270,11 +262,13 @@ public class SpotifyUI extends JFrame {
         return panel;
     }
 
-    public JPanel addPanelArtist(Artist artist) throws IOException {
+    public JPanel addPanelArtist(Artist artist,String id) throws IOException {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setMaximumSize(new Dimension(750, 100));
         panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        panel.putClientProperty("panelId",id);
 
         JLabel label = new JLabel();
         if(hasPhoto(artist)) {
@@ -290,6 +284,31 @@ public class SpotifyUI extends JFrame {
 
         panel.add(label, BorderLayout.WEST);
         panel.add(label1,BorderLayout.CENTER);
+
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (selectedPanel != null) {
+                    selectedPanel.setBackground(new Color(238, 238, 238)); // Color original
+                }
+                panel.setBackground(Color.cyan);
+                selectedPanel = panel; // Actualiza el panel actualmente seleccionado
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (panel != selectedPanel) {
+                    panel.setBackground(Color.gray);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (panel != selectedPanel) {
+                    panel.setBackground(new Color(238, 238, 238));
+                }
+            }
+        });
 
         return panel;
     }
