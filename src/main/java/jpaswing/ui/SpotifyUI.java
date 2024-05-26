@@ -147,7 +147,7 @@ public class SpotifyUI extends JFrame {
             panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(true);
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
             panelSpotifyCentral1.clearTrackPanel();
-            String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"));
+            String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"),panelSpotifyCentral1.getSearchText().length() - 1);
 
             for (Artist artist : manejoSpotify.getArtists(artista)) {
                 panelSpotifyCentral1.addTrack(addPanelArtist(artist,artist.getId()));
