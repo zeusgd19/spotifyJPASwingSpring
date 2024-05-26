@@ -68,7 +68,6 @@ public class SpotifyUI extends JFrame {
         panelSpotifyCentral2.setVisible(false);
         updateData();
         paused = false;
-        JOptionPane.showMessageDialog(this,"ESTO ES UNA COPIA DE SPOTIFY, RECUERDA QUE SI NO TIENES PUESTAS LAS CREDENCIALES NO PODRÁS BUSCAR CANCIONES, SIMPLEMENTE PODRÁS REPRODUCIR LAS QUE TENGAS EN TU BIBLIOTECA. GRACIAS");
     }
 
     public void initComponents() throws ParseException, IOException, JavaLayerException {
@@ -80,6 +79,9 @@ public class SpotifyUI extends JFrame {
         panelSpotifyAbajoBuscar = new SpotifyAbajoBuscarPanel(this);
         panelSpotifyCentral1 = new SpotifyCentral1Panel(this);
         panelSpotifyCentral2 = new SpotifyCentral2Panel();
+        Icon ImagenCentral = new ImageIcon("src/fotos/mondongo.jpg");
+        panelSpotifyCentral1.hideImage();
+        panelSpotifyCentral1.setImage(ImagenCentral);
 
         this.add(panelSpotifyLateral);
         this.add(panelSpotifyArriba);
@@ -108,8 +110,8 @@ public class SpotifyUI extends JFrame {
         panelSpotifyCentral2.setVisible(true);
         panelSpotifyAbajoBuscar.setVisible(false);
         panelSpotifyCentral1.setVisible(false);
-        panelSpotifyCentral1.getLabelCentral().setVisible(false);
         panelSpotifyCentral1.getBuscador().setText("");
+        panelSpotifyCentral1.hideImage();
         panelSpotifyCentral1.clearTrackPanel();
     }
 
@@ -131,29 +133,27 @@ public class SpotifyUI extends JFrame {
     public void search() throws JavaLayerException, IOException, LineUnavailableException, UnsupportedAudioFileException, ParseException, SpotifyWebApiException {
         audioInputStream = AudioSystem.getAudioInputStream(new File("src/sonido/mondongo.wav").getAbsoluteFile());
         clip = AudioSystem.getClip();
-        Icon ImagenCentral = new ImageIcon("src/fotos/mondongo.jpg");
 
         panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(false);
         panelSpotifyCentral1.clearTrackPanel();
         if (panelSpotifyCentral1.getSearchText().equalsIgnoreCase("Mondongo")) {
-            panelSpotifyCentral1.showImage(ImagenCentral);
+            panelSpotifyCentral1.showImage();
             clip.open(audioInputStream);
             clip.start();
         } else if(panelSpotifyCentral1.getSearchText().isEmpty()) {
             panelSpotifyCentral1.clearTrackPanel();
+            panelSpotifyCentral1.hideImage();
         } else if(panelSpotifyCentral1.getSearchText().contains("Artista:")){
             panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(true);
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
-            panelSpotifyCentral1.hideImage();
             panelSpotifyCentral1.clearTrackPanel();
-            String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"),panelSpotifyCentral1.getSearchText().length() - 1);
+            String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"));
 
             for (Artist artist : manejoSpotify.getArtists(artista)) {
                 panelSpotifyCentral1.addTrack(addPanelArtist(artist,artist.getId()));
             }
         }else {
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
-            panelSpotifyCentral1.hideImage();
             panelSpotifyCentral1.clearTrackPanel();
 
             for (Track track : manejoSpotify.getTracks(panelSpotifyCentral1.getSearchText())) {

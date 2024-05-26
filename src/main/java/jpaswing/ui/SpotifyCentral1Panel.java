@@ -7,7 +7,6 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.IOException;
 
@@ -33,7 +32,6 @@ public class SpotifyCentral1Panel extends JPanel {
         labelCentral = new JLabel();
         labelCentral.setBounds(0, 0, this.getWidth(), this.getHeight() + 300);
         this.add(labelCentral);
-        labelCentral.setVisible(false);
 
         buscador = new JTextField();
         buscador.setBackground(Color.WHITE);
@@ -60,13 +58,17 @@ public class SpotifyCentral1Panel extends JPanel {
         this.add(buscador);
     }
 
-    public void showImage(Icon image) {
-        labelCentral.setIcon(image);
+    public void showImage() {
         labelCentral.setVisible(true);
+        results.setVisible(false);
+    }
+    public void setImage(Icon image) {
+        labelCentral.setIcon(image);
     }
 
     public void hideImage() {
         labelCentral.setVisible(false);
+        results.setVisible(true);
     }
 
     public void addTrack(JPanel panel){

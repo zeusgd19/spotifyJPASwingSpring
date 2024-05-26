@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -24,6 +25,7 @@ public class SwingApplication {
         EventQueue.invokeLater(()  ->  {
             SpotifyUI spotifyUI = context.getBean(SpotifyUI.class);
             spotifyUI.setVisible(true);
+            JOptionPane.showMessageDialog(null,"ESTO ES UNA COPIA DE SPOTIFY, RECUERDA QUE SI NO TIENES PUESTAS LAS CREDENCIALES NO PODRÁS BUSCAR CANCIONES, SIMPLEMENTE PODRÁS REPRODUCIR LAS QUE TENGAS EN TU BIBLIOTECA. GRACIAS");
         });
     }
 }

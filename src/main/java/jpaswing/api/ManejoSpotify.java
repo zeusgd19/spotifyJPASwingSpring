@@ -2,11 +2,11 @@ package jpaswing.api;
 
 import com.neovisionaries.i18n.CountryCode;
 import jpaswing.Codigos;
+import jpaswing.cache.CacheManager;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
 import jpaswing.repository.ArtistaRepository;
 import jpaswing.repository.CancionRepository;
-import jpaswing.ui.SpotifyUI;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -24,9 +24,6 @@ import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -40,12 +37,14 @@ public class ManejoSpotify {
 
     private boolean isNull = false;
 
-    private Map<String, Track[]> searchCache = new HashMap<>();
-    private Map<String, Artist[]> artistCache = new HashMap<>();
+    private Map<String, Track[]> searchCache;
+    private Map<String, Artist[]> artistCache;
 
     public ManejoSpotify(CancionRepository cancionRepository, ArtistaRepository artistaRepository) {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
+        this.searchCache = CacheManager.loadTrackCache();
+        this.artistCache = CacheManager.loadArtistCache();
     }
     public void saveSong(Track track) throws IOException, ParseException, SpotifyWebApiException {
         isNull = false;
@@ -93,6 +92,7 @@ public class ManejoSpotify {
         Paging<Track> pagingtracks = searchTracksRequest.execute();
 
         searchCache.put(busqueda, pagingtracks.getItems());
+        CacheManager.saveTrackCache(searchCache);
         return pagingtracks.getItems();
     }
 
@@ -141,6 +141,7 @@ public class ManejoSpotify {
         SearchArtistsRequest getArtistRequest = spotifyApi.searchArtists(artista).limit(20).build();
         Paging<Artist> artistPaging = getArtistRequest.execute();
         artistCache.put(artista, artistPaging.getItems());
+        CacheManager.saveArtistCache(artistCache);
         return artistPaging.getItems();
     }
 
