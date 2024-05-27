@@ -6,21 +6,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import jpaswing.entity.Artista;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.Artist;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class CacheManager {
 
-    private static final String TRACK_CACHE_FILE = "trackCache.json";
-    private static final String ARTIST_CACHE_FILE = "artistCache.json";
+    private static final File TRACK_CACHE_FILE = new File("trackCache.json");
+    private static final File ARTIST_CACHE_FILE = new File("artistCache.json");
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -40,11 +37,10 @@ public class CacheManager {
         saveCache(ARTIST_CACHE_FILE, cache,busqueda);
     }
 
-    private static <T> Map<String, T[]> loadCache(String fileName, TypeReference<Map<String, T[]>> typeReference) {
+    private static <T> Map<String, T[]> loadCache(File fileName, TypeReference<Map<String, T[]>> typeReference) {
         try {
-            File file = new File(fileName);
-            if (file.exists()) {
-                return objectMapper.readValue(file, typeReference);
+            if (fileName.exists()) {
+                return objectMapper.readValue(fileName, typeReference);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,8 +48,16 @@ public class CacheManager {
         return new HashMap<>();
     }
 
-    private static <T> void saveCache(String fileName, Map<String, T[]> cache, String busqueda) {
+    private static <T> void saveCache(File fileName, Map<String, T[]> cache, String busqueda) {
         try {
+
+            Map<String, Object[]> existingData = new HashMap<>();
+
+            // Check if the file exists and load existing data
+            if (fileName.exists()) {
+                existingData = objectMapper.readValue(fileName, new TypeReference<Map<String, Object[]>>() {});
+            }
+
             for (T[] value : cache.values()){
                 if(value instanceof Track[]){
                     // Crear un nuevo ObjectNode solo con los campos deseados
@@ -76,9 +80,9 @@ public class CacheManager {
                         ObjectNode albumNode = objectMapper.createObjectNode();
                         albumNode.set("images", imagesNode);
                         filteredNode[i].set("album", albumNode);
-                        mapa.put(busqueda,filteredNode);
                     }
-                    objectMapper.writeValue(new File(fileName),mapa);
+                    existingData.put(busqueda, mergeArrays(existingData.get(busqueda), filteredNode));
+
                 } else if(value instanceof Artist[]){
                     ObjectNode[] filteredNode = new ObjectNode[cache.get(busqueda).length];
                     Map<String,Object[]> mapa = new HashMap<>();
@@ -89,13 +93,24 @@ public class CacheManager {
                         filteredNode[i].set("name", node.get("name"));
                         filteredNode[i].set("images", node.get("images"));
 
-                        mapa.put(busqueda,filteredNode);
                     }
-                    objectMapper.writeValue(new File(fileName),mapa);
+                    existingData.put(busqueda, mergeArrays(existingData.get(busqueda), filteredNode));
                 }
+                objectMapper.writeValue(fileName,existingData);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static ObjectNode[] mergeArrays(Object[] existingArray, ObjectNode[] newArray) {
+        if (existingArray == null) {
+            return newArray;
+        }
+
+        ObjectNode[] mergedArray = new ObjectNode[existingArray.length + newArray.length];
+        System.arraycopy(existingArray, 0, mergedArray, 0, existingArray.length);
+        System.arraycopy(newArray, 0, mergedArray, existingArray.length, newArray.length);
+        return mergedArray;
     }
 }
