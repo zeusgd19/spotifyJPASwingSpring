@@ -92,7 +92,7 @@ public class ManejoSpotify {
         Paging<Track> pagingtracks = searchTracksRequest.execute();
 
         searchCache.put(busqueda, pagingtracks.getItems());
-        CacheManager.saveTrackCache(searchCache);
+        CacheManager.saveTrackCache(searchCache,busqueda);
         return pagingtracks.getItems();
     }
 
@@ -141,7 +141,7 @@ public class ManejoSpotify {
         SearchArtistsRequest getArtistRequest = spotifyApi.searchArtists(artista).limit(20).build();
         Paging<Artist> artistPaging = getArtistRequest.execute();
         artistCache.put(artista, artistPaging.getItems());
-        CacheManager.saveArtistCache(artistCache);
+        CacheManager.saveArtistCache(artistCache,artista);
         return artistPaging.getItems();
     }
 

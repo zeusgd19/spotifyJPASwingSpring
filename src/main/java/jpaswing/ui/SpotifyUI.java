@@ -48,7 +48,6 @@ public class SpotifyUI extends JFrame {
     private int valor = 1;
     private Font font = null;
     private JPanel selectedPanel = null;
-    private int idPanel = 0;
 
     public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController,ArtistaRepository artistaRepository) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         /*this.setFont(new Font("Gotham",Font.ITALIC,15));*/
