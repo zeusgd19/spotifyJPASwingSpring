@@ -225,12 +225,12 @@ public class SpotifyUI extends JFrame {
         panel.putClientProperty("panelId",id);
 
         JLabel label = new JLabel();
-        BufferedImage image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
-        for (Cancion cancion1:cancionRepository.findAll()){
-            if(cancion1.getImage().equals(track.getAlbum().getImages()[0].getUrl())) {
-                image = ImageIO.read(new URL(cancion1.getImage()));
-                break;
-            }
+        BufferedImage image;
+        Cancion cancion1 = cancionRepository.findByImage(track.getAlbum().getImages()[0].getUrl());
+        if(cancion1 == null){
+            image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
+        } else {
+            image = ImageIO.read(new URL(cancion1.getImage()));
         }
         Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
         label.setIcon(new ImageIcon(scaledImage));
@@ -250,7 +250,7 @@ public class SpotifyUI extends JFrame {
                     selectedPanel.setBackground(new Color(238, 238, 238)); // Color original
                 }
                 panel.setBackground(Color.cyan);
-                selectedPanel = panel; // Actualiza el panel actualmente seleccionado
+                selectedPanel = panel;
             }
 
             @Override
@@ -282,11 +282,11 @@ public class SpotifyUI extends JFrame {
         JLabel label = new JLabel();
         BufferedImage image;
         if(hasPhoto(artist)) {
-            image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
-            for (Artista artista:artistaRepository.findAll()){
-                if(artista.getImage().equals(artist.getImages()[0].getUrl())) {
-                    image = ImageIO.read(new URL(artista.getImage()));
-                }
+            Artista artista = artistaRepository.findByImage(artist.getImages()[0].getUrl());
+            if(artista == null) {
+                image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
+            } else {
+                image = ImageIO.read(new URL(artista.getImage()));
             }
             Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
             label.setIcon(new ImageIcon(scaledImage));

@@ -8,4 +8,5 @@ import org.springframework.stereotype.Component;
 @Component
 public interface ArtistaRepository extends CrudRepository<Artista, Long> {
     Artista findByName(String nome);
+    Artista findByImage(String url);
 }

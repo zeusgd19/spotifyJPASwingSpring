@@ -8,4 +8,5 @@ import org.springframework.stereotype.Component;
 public interface CancionRepository extends CrudRepository<Cancion, Long> {
     Cancion findFirstByOrderByIdAsc();
     Cancion findByName(String name);
+    Cancion findByImage(String url);
 }
