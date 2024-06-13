@@ -149,7 +149,7 @@ public class SpotifyUI extends JFrame {
             String artista = panelSpotifyCentral1.getSearchText().substring(panelSpotifyCentral1.getSearchText().indexOf(":"));
 
             for (Artist artist : manejoSpotify.getArtists(artista)) {
-                panelSpotifyCentral1.addTrack(addPanelArtist(artist,artist.getId()));
+                panelSpotifyCentral1.addTrack(addPanel(artist,artist.getId()));
             }
         }else {
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(true);
@@ -216,32 +216,45 @@ public class SpotifyUI extends JFrame {
         }
     }
 
-    public JPanel addPanel(Track track,String id) throws IOException {
+    public JPanel addPanel(Object entity, String id) throws IOException {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setMaximumSize(new Dimension(750, 100));
         panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-        panel.putClientProperty("panelId",id);
+        panel.putClientProperty("panelId", id);
 
         JLabel label = new JLabel();
-        BufferedImage image;
-        Cancion cancion1 = cancionRepository.findByImage(track.getAlbum().getImages()[0].getUrl());
-        if(cancion1 == null){
-            image = ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl()));
-        } else {
-            image = ImageIO.read(new URL(cancion1.getImage()));
+        BufferedImage image = null;
+
+        if (entity instanceof Track) {
+            Track track = (Track) entity;
+            Cancion cancion1 = cancionRepository.findByImage(track.getAlbum().getImages()[0].getUrl());
+            image = cancion1 == null ? ImageIO.read(new URL(track.getAlbum().getImages()[0].getUrl())) : ImageIO.read(new URL(cancion1.getImage()));
+        } else if (entity instanceof Artist) {
+            Artist artist = (Artist) entity;
+            if (hasPhoto(artist)) {
+                Artista artista = artistaRepository.findByImage(artist.getImages()[0].getUrl());
+                image = artista == null ? ImageIO.read(new URL(artist.getImages()[0].getUrl())) : ImageIO.read(new URL(artista.getImage()));
+            }
         }
-        Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
-        label.setIcon(new ImageIcon(scaledImage));
-        label.setBounds(0,0,50,50);
+
+        if (image != null) {
+            Image scaledImage = image.getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+            label.setIcon(new ImageIcon(scaledImage));
+            label.setBounds(0, 0, 50, 50);
+        }
 
         JLabel label1 = new JLabel();
-        label1.setText(track.getName());
-        label1.setBounds(panel.getWidth() / 2,0,100,40);
+        if (entity instanceof Track) {
+            label1.setText(((Track) entity).getName());
+        } else if (entity instanceof Artist) {
+            label1.setText(((Artist) entity).getName());
+        }
+        label1.setBounds(panel.getWidth() / 2, 0, 100, 40);
 
         panel.add(label, BorderLayout.WEST);
-        panel.add(label1,BorderLayout.CENTER);
+        panel.add(label1, BorderLayout.CENTER);
 
         panel.addMouseListener(new MouseAdapter() {
             @Override
@@ -251,64 +264,6 @@ public class SpotifyUI extends JFrame {
                 }
                 panel.setBackground(Color.cyan);
                 selectedPanel = panel;
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (panel != selectedPanel) {
-                    panel.setBackground(Color.gray);
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (panel != selectedPanel) {
-                    panel.setBackground(new Color(238, 238, 238));
-                }
-            }
-        });
-
-        return panel;
-    }
-
-    public JPanel addPanelArtist(Artist artist,String id) throws IOException {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setMaximumSize(new Dimension(750, 100));
-        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
-        panel.putClientProperty("panelId",id);
-
-        JLabel label = new JLabel();
-        BufferedImage image;
-        if(hasPhoto(artist)) {
-            Artista artista = artistaRepository.findByImage(artist.getImages()[0].getUrl());
-            if(artista == null) {
-                image = ImageIO.read(new URL(artist.getImages()[0].getUrl()));
-            } else {
-                image = ImageIO.read(new URL(artista.getImage()));
-            }
-            Image scaledImage = image.getScaledInstance(50, 50, image.SCALE_SMOOTH);
-            label.setIcon(new ImageIcon(scaledImage));
-            label.setBounds(0, 0, 50, 50);
-        }
-
-
-        JLabel label1 = new JLabel();
-        label1.setText(artist.getName());
-        label1.setBounds(panel.getWidth() / 2,0,100,40);
-
-        panel.add(label, BorderLayout.WEST);
-        panel.add(label1,BorderLayout.CENTER);
-
-        panel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (selectedPanel != null) {
-                    selectedPanel.setBackground(new Color(238, 238, 238)); // Color original
-                }
-                panel.setBackground(Color.cyan);
-                selectedPanel = panel; // Actualiza el panel actualmente seleccionado
             }
 
             @Override

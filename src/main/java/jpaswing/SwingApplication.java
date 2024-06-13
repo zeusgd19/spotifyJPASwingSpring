@@ -8,6 +8,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * This is the Spring Boot Application class.  This is where we make sure we're NOT running in Headless mode and that
@@ -23,9 +28,24 @@ public class SwingApplication {
                         .run(args);
 
         EventQueue.invokeLater(()  ->  {
+            JLabel label = new JLabel("<html>Debes generar unas credenciales de SPOTIFY para que esta aplicacion funcione correctamente, lo puedes hacer desde este  <a href='https://developer.spotify.com/documentation/web-api'>enlace</a>, gracias</html>");
+            label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            label.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    Desktop desktop = Desktop.getDesktop();
+                    try {
+                        desktop.browse(new URI("https://developer.spotify.com/documentation/web-api"));
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (URISyntaxException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+            JOptionPane.showMessageDialog(null,label);
             SpotifyUI spotifyUI = context.getBean(SpotifyUI.class);
             spotifyUI.setVisible(true);
-            JOptionPane.showMessageDialog(null,"ESTO ES UNA COPIA DE SPOTIFY, RECUERDA QUE SI NO TIENES PUESTAS LAS CREDENCIALES NO PODRÁS BUSCAR CANCIONES, SIMPLEMENTE PODRÁS REPRODUCIR LAS QUE TENGAS EN TU BIBLIOTECA. GRACIAS");
         });
     }
 }
