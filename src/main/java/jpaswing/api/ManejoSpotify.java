@@ -5,8 +5,11 @@ import jpaswing.Codigos;
 import jpaswing.cache.CacheManager;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
+import jpaswing.entity.Cancionesusuario;
+import jpaswing.entity.Usuario;
 import jpaswing.repository.ArtistaRepository;
 import jpaswing.repository.CancionRepository;
+import jpaswing.repository.CancionesUsuarioRepository;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Component;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -34,22 +37,25 @@ public class ManejoSpotify {
 
     private final CancionRepository cancionRepository;
     private final ArtistaRepository artistaRepository;
+    private final CancionesUsuarioRepository cancionesUsuarioRepository;
 
     private boolean isNull = false;
 
     private Map<String, Track[]> searchCache;
     private Map<String, Artist[]> artistCache;
 
-    public ManejoSpotify(CancionRepository cancionRepository, ArtistaRepository artistaRepository) {
+    public ManejoSpotify(CancionRepository cancionRepository, ArtistaRepository artistaRepository, CancionesUsuarioRepository cancionesUsuarioRepository) {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
         this.searchCache = CacheManager.loadTrackCache();
         this.artistCache = CacheManager.loadArtistCache();
+        this.cancionesUsuarioRepository = cancionesUsuarioRepository;
     }
-    public void saveSong(Track track) throws IOException, ParseException, SpotifyWebApiException {
+    public void saveSong(Track track,Usuario usuario) throws IOException, ParseException, SpotifyWebApiException {
         isNull = false;
         Artista artista;
         Cancion cancion;
+        Cancionesusuario cancionesusuario;
         getSpotify();
 
 
@@ -75,7 +81,14 @@ public class ManejoSpotify {
             cancion.setName(track.getName());
             cancion.setImage(track.getAlbum().getImages()[0].getUrl());
             cancionRepository.save(cancion);
+        }else {
+            cancion = cancionRepository.findByName(track.getName());
+            System.out.println("Hola");
         }
+        cancionesusuario = new Cancionesusuario();
+        cancionesusuario.setCancion(cancion);
+        cancionesusuario.setUsuario(usuario);
+        cancionesUsuarioRepository.save(cancionesusuario);
     }
 
     public Track[] getTracks(String busqueda) throws IOException, ParseException, SpotifyWebApiException {

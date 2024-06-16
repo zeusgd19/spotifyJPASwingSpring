@@ -1,9 +1,14 @@
 package jpaswing.ui;
 
+import javazoom.jl.decoder.JavaLayerException;
+import org.apache.hc.core5.http.ParseException;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 public class SpotifyLateralPanel extends JPanel {
     private JLabel biblioteca;
@@ -28,7 +33,11 @@ public class SpotifyLateralPanel extends JPanel {
         biblioteca.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                mainFrame.showBibliotecaPanel();
+                try {
+                    mainFrame.showBibliotecaPanel();
+                } catch (IOException | SpotifyWebApiException | JavaLayerException | ParseException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
         this.add(biblioteca);

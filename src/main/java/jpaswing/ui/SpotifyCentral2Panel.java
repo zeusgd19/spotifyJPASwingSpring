@@ -42,13 +42,25 @@ public class SpotifyCentral2Panel extends JPanel {
     public void updateSongData(String songName, String artistName, String coverImage) throws IOException {
         nombreCancion.setText(songName);
         artista.setText(" - " + artistName);
-        BufferedImage image = ImageIO.read(new URL(coverImage));
-        java.awt.Image scaledImage = image.getScaledInstance(300, 300, image.SCALE_SMOOTH);
-        imagenPortada.setIcon(new ImageIcon(scaledImage));
+        if (coverImage != null) {
+            BufferedImage image = ImageIO.read(new URL(coverImage));
+            java.awt.Image scaledImage = image.getScaledInstance(300, 300, image.SCALE_SMOOTH);
+            imagenPortada.setIcon(new ImageIcon(scaledImage));
+        }
     }
 
-    public void clearSongData() {
+    public void clearSongData(){
+        // Clear the song data in your UI components
         nombreCancion.setText("SIN CANCION");
-        imagenPortada.setText("NO HAY IMAGEN");
+        artista.setText("");
+        imagenPortada.setText("SIN IMAGEN");
+    }
+
+    public JLabel getImagenPortada() {
+        return imagenPortada;
+    }
+
+    public void setImagenPortada(JLabel imagenPortada) {
+        this.imagenPortada = imagenPortada;
     }
 }

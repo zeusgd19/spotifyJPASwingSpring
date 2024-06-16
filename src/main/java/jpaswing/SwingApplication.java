@@ -1,6 +1,6 @@
 package jpaswing;
 
-import jpaswing.ui.SpotifyUI;
+import jpaswing.ui.LoginUI;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -44,8 +44,8 @@ public class SwingApplication {
                 }
             });
             JOptionPane.showMessageDialog(null,label);
-            SpotifyUI spotifyUI = context.getBean(SpotifyUI.class);
-            spotifyUI.setVisible(true);
+            LoginUI loginUI = context.getBean(LoginUI.class);
+            loginUI.setVisible(true);
         });
     }
 }

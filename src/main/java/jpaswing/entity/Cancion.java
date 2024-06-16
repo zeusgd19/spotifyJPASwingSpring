@@ -3,6 +3,7 @@ package jpaswing.entity;
 import jakarta.persistence.*;
 
 import javax.swing.*;
+import java.util.Set;
 
 @Entity
 public class Cancion {
@@ -19,6 +20,9 @@ public class Cancion {
     @ManyToOne(fetch = FetchType.EAGER)
     private Artista artista;
 
+
+    @ManyToMany(mappedBy = "canciones")
+    private Set<Usuario> usuarios;
     public Cancion() {
 
     }

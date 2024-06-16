@@ -83,8 +83,10 @@ public class SpotifyAbajoBibliotecaPanel extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
-                    mainFrame.playMusic();
-                    mainFrame.playProgres();
+                    if(mainFrame.getPlayer() != null) {
+                        mainFrame.playMusic();
+                        mainFrame.playProgres();
+                    }
                 } catch (IOException | JavaLayerException | ParseException ex) {
                     throw new RuntimeException(ex);
                 }

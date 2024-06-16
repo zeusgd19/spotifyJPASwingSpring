@@ -2,8 +2,10 @@ package jpaswing.controller;
 
 
 import jpaswing.entity.Cancion;
+import jpaswing.entity.Usuario;
 import jpaswing.repository.CancionRepository;
 import jpaswing.repository.CancionRepositoryPagination;
+import jpaswing.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -22,7 +24,7 @@ public class CancionController {
     public CancionController(CancionRepository cancionRepository, CancionRepositoryPagination cancionRepositoryPagination){
         this.cancionRepository = cancionRepository;
         this.cancionRepositoryPagination = cancionRepositoryPagination;
-        this.count = cancionRepositoryPagination.countAllRecords();
+        this.count = cancionRepositoryPagination.countAllRecords("");
     }
     public Optional<Cancion> getCancion(){
         //El primer parámetro es el número de página y el segundo los registros que queremos que nos devuelva
@@ -31,16 +33,16 @@ public class CancionController {
         return currentCancion;
     }
 
-    public Optional<Cancion> next(){
+    public Optional<Cancion> next(String username){
         //Si ya estoy al final, devuelvo el libro actual
-        this.count = cancionRepositoryPagination.countAllRecords();
+        this.count = cancionRepositoryPagination.countAllRecords(username);
         if (currentPage == this.count -1 ) return currentCancion;
 
         currentPage++;
         return getCancion();
     }
 
-    public Optional<Cancion> previous(){
+    public Optional<Cancion> previous(String username){
         //Si ya estoy al principio, devuelvo el libro actual
         if (currentPage == 0) return getCancion();
 
@@ -48,14 +50,14 @@ public class CancionController {
         return getCancion();
     }
 
-    public Optional<Cancion> first(){
+    public Optional<Cancion> first(String username){
         //Primer libro
         currentPage = 0;
         return getCancion();
     }
-    public Optional<Cancion> last(){
+    public Optional<Cancion> last(String username){
         //Último libro
-        this.count = cancionRepositoryPagination.countAllRecords();
+        this.count = cancionRepositoryPagination.countAllRecords(username);
         currentPage = count - 1;
         return getCancion();
     }
