@@ -3,7 +3,6 @@ package jpaswing.ui;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 import jpaswing.api.ManejoSpotify;
-import jpaswing.controller.CancionController;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
 import jpaswing.entity.Usuario;
@@ -43,7 +42,6 @@ public class SpotifyUI extends JFrame {
 
     private Cancion cancion;
     private final ManejoSpotify manejoSpotify;
-    private final CancionController cancionController;
     private final CancionRepository cancionRepository;
     private final ArtistaRepository artistaRepository;
 
@@ -58,7 +56,7 @@ public class SpotifyUI extends JFrame {
     private JPanel selectedPanel = null;
     private final ApplicationContext context;
 
-    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, CancionController cancionController, ArtistaRepository artistaRepository, UsuarioRepository usuarioRepository, ApplicationContext context) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
+    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, ArtistaRepository artistaRepository, UsuarioRepository usuarioRepository, ApplicationContext context) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         this.context = context;
         this.setFont(new Font("Gotham",Font.ITALIC,15));
         this.setTitle("Spotify");
@@ -71,7 +69,6 @@ public class SpotifyUI extends JFrame {
         this.cancionRepository = cancionRepository;
         this.artistaRepository = artistaRepository;
         this.manejoSpotify = manejoSpotify;
-        this.cancionController = cancionController;
         initComponents();
         panelSpotifyAbajoBiblioteca.setVisible(false);
         panelSpotifyCentral2.setVisible(false);
@@ -131,6 +128,9 @@ public class SpotifyUI extends JFrame {
         panelSpotifyCentral1.hideImage();
         panelSpotifyCentral1.clearTrackPanel();
         updateData();
+        if(cancionRepository.findFirstByUsuariosIs(usuario) != null){
+            panelSpotifyCentral2.getPagina().setText("0");
+        }
         player = getPlayer();
     }
 
@@ -143,6 +143,7 @@ public class SpotifyUI extends JFrame {
 
     public void updateData() throws ParseException, SpotifyWebApiException, IOException {
         if (this.cancion != null) {
+            panelSpotifyCentral2.getPaginas().setText("/"+(cancionRepository.findAllByUsuariosIs(usuario).size() - 1));
             panelSpotifyCentral2.updateSongData(cancion.getName(), cancion.getArtista().getName(), cancion.getImage());
         } else {
             panelSpotifyCentral2.clearSongData();
@@ -150,30 +151,14 @@ public class SpotifyUI extends JFrame {
     }
 
 
-
-    /*private void updateData() throws ParseException, SpotifyWebApiException, IOException {
-       ArrayList<Cancion> cancionesUsuario = cancionRepository.findAllByUsuariosContains(usuario);
-        System.out.println(cancionesUsuario);
-     if (cancionesUsuario != null && !cancionesUsuario.isEmpty()) {
-            panelSpotifyCentral2.clearSongData();
-            for (Cancion cancion : cancionesUsuario) {
-                // Actualizar el panel con la información de las canciones del usuario
-                panelSpotifyCentral2.updateSongData(cancion.getName(), cancion.getArtista().getName(), cancion.getImage());
-            }
-        } else {
-            panelSpotifyCentral2.clearSongData();
-        }
-
-    }
-
-     */
-
     public void search() throws JavaLayerException, IOException, LineUnavailableException, UnsupportedAudioFileException, ParseException, SpotifyWebApiException {
         audioInputStream = AudioSystem.getAudioInputStream(new File("src/sonido/mondongo.wav").getAbsoluteFile());
         clip = AudioSystem.getClip();
 
         panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(false);
         panelSpotifyCentral1.clearTrackPanel();
+
+        // Buscar Easter Egg
         if (panelSpotifyCentral1.getSearchText().equalsIgnoreCase("Mondongo")) {
             panelSpotifyCentral1.showImage();
             clip.open(audioInputStream);
@@ -181,6 +166,8 @@ public class SpotifyUI extends JFrame {
         } else if(panelSpotifyCentral1.getSearchText().isEmpty()) {
             panelSpotifyCentral1.clearTrackPanel();
             panelSpotifyCentral1.hideImage();
+
+            //Buscar por artista
         } else if(panelSpotifyCentral1.getSearchText().contains("Artista:")){
             panelSpotifyAbajoBuscar.getSearchSongsArtist().setEnabled(true);
             panelSpotifyAbajoBuscar.getGuardar().setEnabled(false);
@@ -211,38 +198,20 @@ public class SpotifyUI extends JFrame {
     public void nextSong() {
         ArrayList<Cancion> cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
 
-        if (cancionArrayList.isEmpty()) {
-            return;
-        }
-        int currentIndex = -1;
-        for (int i = 0; i < cancionArrayList.size(); i++) {
-            if (cancionArrayList.get(i).getId().equals(cancion.getId())) {
-                currentIndex = i;
-                break;
+        nextOrPrevious("next",cancionArrayList);
+
+        if(!cancionArrayList.isEmpty()) {
+            try {
+                player.close();
+                player = getPlayer();
+                paused = true;
+                valor = 1;
+                panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
+                updateData();
+                panelSpotifyAbajoBiblioteca.showPlayButton();
+            } catch (IOException | JavaLayerException | ParseException | SpotifyWebApiException e) {
+                throw new RuntimeException(e);
             }
-        }
-
-        // Si no se encontró la canción actual en la lista, establece la primera canción como actual
-        if (currentIndex == -1) {
-            currentIndex = 0;
-        } else {
-            // Avanza al siguiente índice de canción sin repetir
-            currentIndex = (currentIndex + 1) % cancionArrayList.size();
-        }
-
-        // Actualiza la canción actual y reproduce
-        this.cancion = cancionArrayList.get(currentIndex);
-
-        try {
-            player.close(); // Cierra el reproductor actual si está reproduciendo una canción
-            player = getPlayer(); // Obtiene el reproductor para la nueva canción
-            paused = true; // Reinicia el estado de pausa
-            valor = 1; // Reinicia el valor de la barra de progreso
-            panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor); // Actualiza la barra de progreso en la interfaz
-            updateData(); // Actualiza la información de la canción en la interfaz
-            panelSpotifyAbajoBiblioteca.showPlayButton(); // Muestra el botón de reproducción en la interfaz
-        } catch (IOException | JavaLayerException | ParseException | SpotifyWebApiException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -250,6 +219,24 @@ public class SpotifyUI extends JFrame {
     public void previousSong() {
         ArrayList<Cancion> cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
 
+        nextOrPrevious("previous",cancionArrayList);
+
+        if(!cancionArrayList.isEmpty()) {
+            try {
+                player.close();
+                player = getPlayer();
+                paused = true;
+                valor = 1;
+                panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor);
+                updateData();
+                panelSpotifyAbajoBiblioteca.showPlayButton();
+            } catch (IOException | JavaLayerException | ParseException | SpotifyWebApiException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void nextOrPrevious(String situation,ArrayList<Cancion> cancionArrayList){
         if (cancionArrayList.isEmpty()) {
             return;
         }
@@ -262,28 +249,17 @@ public class SpotifyUI extends JFrame {
             }
         }
 
-        // Si no se encontró la canción actual en la lista, establece la última canción como actual
-        if (currentIndex == -1) {
-            currentIndex = cancionArrayList.size() - 1;
+        if (situation.equals("previous")) {
+            currentIndex = (currentIndex == -1) ? cancionArrayList.size() - 1 : (currentIndex - 1 + cancionArrayList.size()) % cancionArrayList.size();
         } else {
-            // Avanza al índice anterior sin repetir
-            currentIndex = (currentIndex - 1 + cancionArrayList.size()) % cancionArrayList.size();
+            currentIndex = (currentIndex == -1) ? 0 : (currentIndex + 1) % cancionArrayList.size();
         }
 
-        // Actualiza la canción actual y reproduce
+        // Actualiza la canción actual
         this.cancion = cancionArrayList.get(currentIndex);
 
-        try {
-            player.close(); // Cierra el reproductor actual si está reproduciendo una canción
-            player = getPlayer(); // Obtiene el reproductor para la nueva canción
-            paused = true; // Reinicia el estado de pausa
-            valor = 1; // Reinicia el valor de la barra de progreso
-            panelSpotifyAbajoBiblioteca.getProgressBar().setValue(valor); // Actualiza la barra de progreso en la interfaz
-            updateData(); // Actualiza la información de la canción en la interfaz
-            panelSpotifyAbajoBiblioteca.showPlayButton(); // Muestra el botón de reproducción en la interfaz
-        } catch (IOException | JavaLayerException | ParseException | SpotifyWebApiException e) {
-            throw new RuntimeException(e);
-        }
+        // Actualizar paginas actual
+        panelSpotifyCentral2.getPagina().setText("" + currentIndex);
     }
 
 
@@ -296,6 +272,7 @@ public class SpotifyUI extends JFrame {
             if(!manejoSpotify.isNull()) {
                 JOptionPane.showMessageDialog(panelSpotifyCentral1, "CANCION GUARDADA CORRECTAMENTE");
             }
+            panelSpotifyCentral2.getPagina().setText("0");
             updateData();
         }
     }
@@ -375,6 +352,7 @@ public class SpotifyUI extends JFrame {
             loginUI.setVisible(true);
             try {
                 resetState();
+                panelSpotifyCentral2.getPagina().setText("");
             } catch (ParseException | IOException | SpotifyWebApiException e) {
                 throw new RuntimeException(e);
             }
@@ -386,9 +364,12 @@ public class SpotifyUI extends JFrame {
         this.cancion = null;
         this.usuario = null;
         panelSpotifyCentral2.getImagenPortada().setIcon(null);
+        panelSpotifyCentral2.getPaginas().setText("");
+        panelSpotifyCentral2.getPagina().setText("0");
+        showBuscarPanel();
         updateData();
-        panelSpotifyAbajoBiblioteca.getProgressBar().setValue(0); // Reset progress bar
-        panelSpotifyAbajoBiblioteca.showPlayButton(); // Show play button
+        panelSpotifyAbajoBiblioteca.getProgressBar().setValue(0);
+        panelSpotifyAbajoBiblioteca.showPlayButton();
     }
     public boolean hasPhoto(Artist artist){
         return artist.getImages().length >= 1;

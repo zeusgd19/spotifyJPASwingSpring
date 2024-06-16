@@ -12,6 +12,8 @@ public class SpotifyCentral2Panel extends JPanel {
     private JLabel imagenPortada;
     private JLabel nombreCancion;
     private JLabel artista;
+    private JLabel pagina;
+    private JLabel paginas;
 
     public SpotifyCentral2Panel() {
         initComponents();
@@ -21,6 +23,18 @@ public class SpotifyCentral2Panel extends JPanel {
         this.setLayout(null);
         this.setBounds(50, 40, 750, 455);
         this.setBackground(Color.GRAY);
+        pagina = new JLabel("");
+        pagina.setFont(new Font("Tahoma", Font.PLAIN, 23));
+        pagina.setForeground(Color.GREEN);
+        pagina.setBounds(10, 10, 45, 50);
+        this.add(pagina);
+
+        paginas = new JLabel("");
+        paginas.setFont(new Font("Tahoma", Font.PLAIN, 23));
+        paginas.setForeground(Color.GREEN);
+        paginas.setBounds(55, 10, 50, 50);
+        this.add(paginas);
+
 
         imagenPortada = new JLabel();
         imagenPortada.setBounds(this.getWidth() / 2 - 150, this.getHeight() / 2 - 170, 300, 300);
@@ -62,5 +76,21 @@ public class SpotifyCentral2Panel extends JPanel {
 
     public void setImagenPortada(JLabel imagenPortada) {
         this.imagenPortada = imagenPortada;
+    }
+
+    public JLabel getPagina() {
+        return pagina;
+    }
+
+    public void setPagina(JLabel pagina) {
+        this.pagina = pagina;
+    }
+
+    public JLabel getPaginas() {
+        return paginas;
+    }
+
+    public void setPaginas(JLabel paginas) {
+        this.paginas = paginas;
     }
 }

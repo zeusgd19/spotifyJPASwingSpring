@@ -1,10 +1,7 @@
 package jpaswing.ui;
 
 import javazoom.jl.decoder.JavaLayerException;
-import jpaswing.controller.CancionController;
-import jpaswing.entity.Cancion;
 import org.apache.hc.core5.http.ParseException;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +15,7 @@ public class SpotifyAbajoBibliotecaPanel extends JPanel {
     private JLabel reproducir;
     private JLabel pause;
     private JProgressBar progressBar;
-    private SpotifyUI mainFrame;
+    private final SpotifyUI mainFrame;
 
     public SpotifyAbajoBibliotecaPanel(SpotifyUI mainFrame) {
         this.mainFrame = mainFrame;

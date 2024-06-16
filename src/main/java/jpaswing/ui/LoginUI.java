@@ -30,13 +30,11 @@ public class LoginUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Create and set up the content pane.
         JPanel panel = new JPanel();
         panel.setLayout(null);  // Use null layout
         panel.setBackground(new Color(25, 20, 20));
         getContentPane().add(panel);
 
-        // Add components to the panel
         JLabel titleLabel = new JLabel("Spotify Login or Register");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 30));
         titleLabel.setForeground(Color.WHITE);
@@ -73,7 +71,6 @@ public class LoginUI extends JFrame {
         statusLabel.setBounds(100, 250, 300, 25);
         panel.add(statusLabel);
 
-        // Add action listener to the login button
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -115,7 +112,8 @@ public class LoginUI extends JFrame {
         String password = new String(passwordField.getPassword());
 
         boolean login = false;
-        // Perform simple validation (In a real app, authenticate against Spotify)
+
+        //Validar correo contraseña
         if (usuarioRepository.existsByCorreo(username)) {
             if(usuarioRepository.existsByPassword(password)) {
                 statusLabel.setText("Login successful!");
@@ -123,9 +121,11 @@ public class LoginUI extends JFrame {
                 usuario = usuarioRepository.findByCorreo(username);
                 login = true;
             } else {
+                statusLabel.setForeground(Color.RED);
                 statusLabel.setText("Login failed!");
             }
         } else {
+            // Registrar si correo es valido
             if(validUsername(username)) {
                 usuario = new Usuario();
                 usuario.setCorreo(username);
