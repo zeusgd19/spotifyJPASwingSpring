@@ -83,7 +83,6 @@ public class ManejoSpotify {
             cancionRepository.save(cancion);
         }else {
             cancion = cancionRepository.findByName(track.getName());
-            System.out.println("Hola");
         }
         cancionesusuario = new Cancionesusuario();
         cancionesusuario.setCancion(cancion);

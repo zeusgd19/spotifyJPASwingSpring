@@ -11,6 +11,7 @@ public class SpotifyAbajoBuscarPanel extends JPanel {
     private JButton guardar;
     private JButton searchSongsArtist;
     private SpotifyUI mainFrame;
+    private Icon icon;
 
     public SpotifyAbajoBuscarPanel(SpotifyUI mainFrame) {
         this.mainFrame = mainFrame;
