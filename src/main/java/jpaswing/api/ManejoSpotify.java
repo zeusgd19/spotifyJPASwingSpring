@@ -84,10 +84,13 @@ public class ManejoSpotify {
         }else {
             cancion = cancionRepository.findByName(track.getName());
         }
-        cancionesusuario = new Cancionesusuario();
-        cancionesusuario.setCancion(cancion);
-        cancionesusuario.setUsuario(usuario);
-        cancionesUsuarioRepository.save(cancionesusuario);
+
+        if(!cancionesUsuarioRepository.existsCancionesusuarioByCancionAndUsuario(cancion,usuario)) {
+            cancionesusuario = new Cancionesusuario();
+            cancionesusuario.setCancion(cancion);
+            cancionesusuario.setUsuario(usuario);
+            cancionesUsuarioRepository.save(cancionesusuario);
+        }
     }
 
     public Track[] getTracks(String busqueda) throws IOException, ParseException, SpotifyWebApiException {

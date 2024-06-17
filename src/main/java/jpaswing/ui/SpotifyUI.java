@@ -56,6 +56,8 @@ public class SpotifyUI extends JFrame {
     private Font font = null;
     private JPanel selectedPanel = null;
     private final ApplicationContext context;
+    private int currentIndex = -1;
+    private ArrayList<Cancion> cancionArrayList;
 
     public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, ArtistaRepository artistaRepository, UsuarioRepository usuarioRepository, CancionesUsuarioRepository cancionesUsuarioRepository, ApplicationContext context) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
         this.cancionesUsuarioRepository = cancionesUsuarioRepository;
@@ -134,6 +136,7 @@ public class SpotifyUI extends JFrame {
             panelSpotifyCentral2.getPagina().setText("0");
         }
         player = getPlayer();
+        currentIndex = 0;
     }
 
     public void showBuscarPanel() {
@@ -198,7 +201,7 @@ public class SpotifyUI extends JFrame {
         }
     }
     public void nextSong() {
-        ArrayList<Cancion> cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
+        cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
 
         nextOrPrevious("next",cancionArrayList);
 
@@ -219,7 +222,7 @@ public class SpotifyUI extends JFrame {
 
 
     public void previousSong() {
-        ArrayList<Cancion> cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
+        cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
 
         nextOrPrevious("previous",cancionArrayList);
 
@@ -243,7 +246,7 @@ public class SpotifyUI extends JFrame {
             return;
         }
 
-        int currentIndex = -1;
+        currentIndex = -1;
         for (int i = 0; i < cancionArrayList.size(); i++) {
             if (cancionArrayList.get(i).getId().equals(cancion.getId())) {
                 currentIndex = i;
@@ -280,9 +283,38 @@ public class SpotifyUI extends JFrame {
     }
 
     public void removeCancion() throws ParseException, IOException, SpotifyWebApiException {
+        cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
         Cancionesusuario cancionesusuario = cancionesUsuarioRepository.findCancionesusuarioByCancionAndUsuario(this.cancion,this.usuario);
         if(cancionesusuario != null) {
+            int previousIndex = currentIndex;
+            int totalIndexPrevious = cancionArrayList.size();
+
+            if(totalIndexPrevious == 1){
+                cancionesUsuarioRepository.delete(cancionesusuario);
+                this.cancion = null;
+                panelSpotifyCentral2.clearSongData();
+                panelSpotifyCentral2.getImagenPortada().setIcon(null);
+                panelSpotifyCentral2.getPagina().setText("");
+                panelSpotifyCentral2.getPaginas().setText("");
+                return;
+            }
             cancionesUsuarioRepository.delete(cancionesusuario);
+            cancionArrayList = cancionRepository.findAllByUsuariosIs(usuario);
+            if(cancionArrayList.size() == 1){
+                this.cancion = null;
+                panelSpotifyCentral2.clearSongData();
+                panelSpotifyCentral2.getImagenPortada().setIcon(null);
+                panelSpotifyCentral2.getPagina().setText("");
+                panelSpotifyCentral2.getPaginas().setText("");
+                return;
+            }
+            if(previousIndex == 0) {
+                this.cancion = cancionArrayList.get(0);
+            } else if(previousIndex == totalIndexPrevious - 1) {
+                this.cancion = cancionArrayList.get(0);
+            } else {
+                this.cancion = cancionArrayList.get(currentIndex);
+            }
             updateData();
             panelSpotifyCentral2.revalidate();
             panelSpotifyCentral2.repaint();
