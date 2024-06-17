@@ -21,7 +21,6 @@ public class LoginUI extends JFrame {
     private JLabel statusLabel;
     private final ApplicationContext context;
     private Usuario usuario;
-    private SpotifyCentral2Panel centralPanel;
 
     public LoginUI(ApplicationContext context, UsuarioRepository usuarioRepository, CancionRepository cancionRepository) {
         this.context = context;
@@ -47,7 +46,7 @@ public class LoginUI extends JFrame {
         panel.add(usernameLabel);
 
         usernameField = new JTextField();
-        usernameField.setBounds(200, 100, 200, 25);
+        usernameField.setBounds(200, 100, 300, 25);
         panel.add(usernameField);
 
         JLabel passwordLabel = new JLabel("Password:");
@@ -56,14 +55,14 @@ public class LoginUI extends JFrame {
         panel.add(passwordLabel);
 
         passwordField = new JPasswordField();
-        passwordField.setBounds(200, 150, 200, 25);
+        passwordField.setBounds(200, 150, 300, 25);
         panel.add(passwordField);
 
-        loginButton = new JButton("Login");
+        loginButton = new JButton("Login / Register");
         loginButton.setBackground(new Color(30, 215, 96));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFocusPainted(false);
-        loginButton.setBounds(200, 200, 200, 30);
+        loginButton.setBounds(200, 200, 300, 30);
         panel.add(loginButton);
 
         statusLabel = new JLabel("", SwingConstants.CENTER);
