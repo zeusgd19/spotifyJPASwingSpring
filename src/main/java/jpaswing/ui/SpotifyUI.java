@@ -5,9 +5,11 @@ import javazoom.jl.player.Player;
 import jpaswing.api.ManejoSpotify;
 import jpaswing.entity.Artista;
 import jpaswing.entity.Cancion;
+import jpaswing.entity.Cancionesusuario;
 import jpaswing.entity.Usuario;
 import jpaswing.repository.ArtistaRepository;
 import jpaswing.repository.CancionRepository;
+import jpaswing.repository.CancionesUsuarioRepository;
 import jpaswing.repository.UsuarioRepository;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.context.ApplicationContext;
@@ -44,6 +46,7 @@ public class SpotifyUI extends JFrame {
     private final ArtistaRepository artistaRepository;
 
     private final UsuarioRepository usuarioRepository;
+    private final CancionesUsuarioRepository cancionesUsuarioRepository;
     private Usuario usuario;
     private boolean paused;
     private Player player;
@@ -54,7 +57,8 @@ public class SpotifyUI extends JFrame {
     private JPanel selectedPanel = null;
     private final ApplicationContext context;
 
-    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, ArtistaRepository artistaRepository, UsuarioRepository usuarioRepository, ApplicationContext context) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
+    public SpotifyUI(CancionRepository cancionRepository, ManejoSpotify manejoSpotify, ArtistaRepository artistaRepository, UsuarioRepository usuarioRepository, CancionesUsuarioRepository cancionesUsuarioRepository, ApplicationContext context) throws IOException, ParseException, SpotifyWebApiException, JavaLayerException {
+        this.cancionesUsuarioRepository = cancionesUsuarioRepository;
         this.context = context;
         this.setFont(new Font("Gotham",Font.ITALIC,15));
         this.setTitle("Spotify");
@@ -81,7 +85,7 @@ public class SpotifyUI extends JFrame {
         panelSpotifyAbajoBiblioteca = new SpotifyAbajoBibliotecaPanel(this);
         panelSpotifyAbajoBuscar = new SpotifyAbajoBuscarPanel(this);
         panelSpotifyCentral1 = new SpotifyCentral1Panel(this);
-        panelSpotifyCentral2 = new SpotifyCentral2Panel();
+        panelSpotifyCentral2 = new SpotifyCentral2Panel(this);
         Icon ImagenCentral = new ImageIcon("src/fotos/mondongo.jpg");
         panelSpotifyCentral1.hideImage();
         panelSpotifyCentral1.setImage(ImagenCentral);
@@ -272,6 +276,16 @@ public class SpotifyUI extends JFrame {
             }
             panelSpotifyCentral2.getPagina().setText("0");
             updateData();
+        }
+    }
+
+    public void removeCancion() throws ParseException, IOException, SpotifyWebApiException {
+        Cancionesusuario cancionesusuario = cancionesUsuarioRepository.findCancionesusuarioByCancionAndUsuario(this.cancion,this.usuario);
+        if(cancionesusuario != null) {
+            cancionesUsuarioRepository.delete(cancionesusuario);
+            updateData();
+            panelSpotifyCentral2.revalidate();
+            panelSpotifyCentral2.repaint();
         }
     }
 

@@ -1,5 +1,8 @@
 package jpaswing.ui;
 
+import org.apache.hc.core5.http.ParseException;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -14,8 +17,11 @@ public class SpotifyCentral2Panel extends JPanel {
     private JLabel artista;
     private JLabel pagina;
     private JLabel paginas;
+    private JButton remove;
+    private SpotifyUI spotifyUI;
 
-    public SpotifyCentral2Panel() {
+    public SpotifyCentral2Panel(SpotifyUI spotifyUI) {
+        this.spotifyUI = spotifyUI;
         initComponents();
     }
 
@@ -51,6 +57,17 @@ public class SpotifyCentral2Panel extends JPanel {
         artista.setForeground(Color.cyan);
         artista.setBounds(this.getWidth() / 2 + 80, this.getHeight() / 2 + 150, 300, 30);
         this.add(artista);
+
+        remove = new JButton("Remove");
+        remove.setBounds(this.getWidth() - 100,10,100,30);
+        remove.addActionListener(e ->{
+            try {
+                spotifyUI.removeCancion();
+            } catch (ParseException | IOException | SpotifyWebApiException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        this.add(remove);
     }
 
     public void updateSongData(String songName, String artistName, String coverImage) throws IOException {
