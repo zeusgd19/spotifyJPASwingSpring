@@ -8,7 +8,6 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
-src/main/java/jpaswing/Codigos.java
 *.iws
 *.iml
 *.ipr

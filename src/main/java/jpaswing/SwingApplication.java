@@ -46,6 +46,8 @@ public class SwingApplication {
             JOptionPane.showMessageDialog(null,label);
             LoginUI loginUI = context.getBean(LoginUI.class);
             loginUI.setVisible(true);
+            Codigos.clientID = JOptionPane.showInputDialog("Introduce tu ClientID de SPOTIFY para que pueda funcionar la aplicación");
+            Codigos.secretCliente = JOptionPane.showInputDialog("Introduce tu ClientSecret de SPOTIFY para que pueda funcionar la aplicación");
         });
     }
 }
